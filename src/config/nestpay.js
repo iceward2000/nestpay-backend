@@ -12,4 +12,3 @@ export const nestpayConfig = {
     currency: '949', // TRY
     tranType: 'Auth',
   };
-  

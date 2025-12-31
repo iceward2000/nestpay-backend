@@ -53,27 +53,19 @@ router.get('/initiate', (req, res) => {
   res.send(formHtml);
 });
 
+
 router.post('/success', (req, res) => {
   console.log('✅ PAYMENT SUCCESS');
   console.log(req.body);
 
-  const orderId = req.body.oid; // Shopify order name / number
-
-  const redirectUrl = `https://lazika.com.tr/account/orders/${orderId}`;
-
-  return res.redirect(302, redirectUrl);
+  // Shopify-safe redirect
+  return res.redirect(302, 'https://lazika.com.tr/account/orders');
 });
 
 router.get('/success', (req, res) => {
-  const orderId = req.query.order_id;
-
-  if (!orderId) {
-    return res.redirect('https://lazika.com.tr/account');
-  }
-
-  const redirectUrl = `https://lazika.com.tr/account/orders/${orderId}`;
-  return res.redirect(302, redirectUrl);
+  return res.redirect(302, 'https://lazika.com.tr/account/orders');
 });
+
 
 // FAIL
 router.post('/fail', (req, res) => {
