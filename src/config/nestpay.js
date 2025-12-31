@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-
+//test
 export const nestpayConfig = {
     clientId: process.env.PAYTEN_CLIENT_ID,
     storeKey: process.env.PAYTEN_STORE_KEY,
