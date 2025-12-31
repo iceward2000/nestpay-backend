@@ -83,8 +83,24 @@ router.post(
     console.log(req.body);
 
     const receivedHash = req.body.hash;
-    const paramsForHash = { ...req.body };
-    delete paramsForHash.hash;
+
+    const excludedKeys = [
+      'hash',
+      'encoding',
+      'Response',
+      'ProcReturnCode',
+    ];
+
+    const paramsForHash = {};
+
+    Object.keys(req.body)
+      .filter((key) => !excludedKeys.includes(key))
+      .sort()
+      .forEach((key) => {
+        if (req.body[key]) {
+          paramsForHash[key] = req.body[key];
+        }
+      });
 
     const calculatedHash = generateHashV3(
       paramsForHash,
@@ -98,21 +114,18 @@ router.post(
 
     if (req.body.Response === 'Approved') {
       console.log('✅ PAYMENT APPROVED');
-      console.log('Order ID:', req.body.oid);
 
       return res.send(`
         <h1>Payment Successful</h1>
-        <p>Order: ${req.body.oid}</p>
-      `);
-    } else {
-      console.log('❌ PAYMENT FAILED');
-
-      return res.send(`
-        <h1>Payment Failed</h1>
-        <p>Please try again.</p>
+        <p>Order ID: ${req.body.oid}</p>
       `);
     }
+
+    return res.send(`
+      <h1>Payment Failed</h1>
+    `);
   }
 );
+
 
 export default router;
