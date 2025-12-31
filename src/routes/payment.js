@@ -53,4 +53,44 @@ router.get('/initiate', (req, res) => {
   res.send(formHtml);
 });
 
+router.post('/success', (req, res) => {
+  console.log('✅ PAYMENT SUCCESS');
+  console.log(req.body);
+
+  const orderId = req.body.oid; // Shopify order name / number
+
+  const redirectUrl = `https://lazika.com.tr/account/orders/${orderId}`;
+
+  return res.redirect(302, redirectUrl);
+});
+
+router.get('/success', (req, res) => {
+  const orderId = req.query.order_id;
+
+  if (!orderId) {
+    return res.redirect('https://lazika.com.tr/account');
+  }
+
+  const redirectUrl = `https://lazika.com.tr/account/orders/${orderId}`;
+  return res.redirect(302, redirectUrl);
+});
+
+// FAIL
+router.post('/fail', (req, res) => {
+  console.log('❌ PAYMENT FAILED');
+  console.log(req.body);
+
+  res.send(`
+    <h1>Payment Failed</h1>
+    <p>Please try again.</p>
+  `);
+});
+
+router.get('/fail', (req, res) => {
+  res.send(`
+    <h1>Payment Failed</h1>
+    <p>Please try again.</p>
+  `);
+});
+
 export default router;
