@@ -1,6 +1,9 @@
 import express from 'express';
 import { nestpayConfig } from '../config/nestpay.js';
 import { generateHashV3 } from '../services/hashService.js';
+import fetch from 'node-fetch';
+import { markOrderAsPaid } from '../services/shopifyService.js';
+
 
 const router = express.Router();
 
@@ -54,12 +57,43 @@ router.get('/initiate', (req, res) => {
 });
 
 
-router.post('/success', (req, res) => {
-  console.log('✅ PAYMENT SUCCESS');
-  console.log(req.body);
+router.post('/success', async (req, res) => {
+  try {
+    console.log('✅ PAYMENT SUCCESS');
+    console.log(req.body);
 
-  // Shopify-safe redirect
-  return res.redirect(302, 'https://lazika.com.tr/account/orders');
+    const orderName = req.body.oid; // e.g. "#1023"
+    const amount = req.body.amount;
+
+    const shop = process.env.SHOPIFY_STORE;
+    const token = process.env.SHOPIFY_ADMIN_TOKEN;
+
+    // 1️⃣ Find order by name
+    const searchRes = await fetch(
+      `https://${shop}/admin/api/2024-01/orders.json?name=${encodeURIComponent(orderName)}`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': token,
+        },
+      }
+    );
+
+    const searchData = await searchRes.json();
+    const order = searchData.orders?.[0];
+
+    if (!order) {
+      throw new Error(`Order not found: ${orderName}`);
+    }
+
+    // 2️⃣ Mark order as paid
+    await markOrderAsPaid(order.id, amount);
+
+    // 3️⃣ Redirect customer safely
+    return res.redirect(302, 'https://lazika.com.tr/account/orders');
+  } catch (err) {
+    console.error('❌ PAYMENT SUCCESS ERROR', err);
+    return res.redirect(302, 'https://lazika.com.tr/account/orders');
+  }
 });
 
 router.get('/success', (req, res) => {
